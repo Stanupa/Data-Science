@@ -1,16 +1,9 @@
----
-title: "Yelp Word Clouds"
-output: html_notebook
----
-```{r}
 #Install needed libraries.
 install.packages("tm")
 install.packages("ngram")
 install.packages("plyr")
 install.packages("wordcloud")
-```
 
-```{r}
 #Load needed libraries.
 library(tm)
 library(SentimentAnalysis)
@@ -18,28 +11,20 @@ library(ngram)
 library(plyr)
 library(wordcloud)
 library(qdapDictionaries)
-```
 
-```{r}
 #Read in first 10000 rows of the Yelp Reviews Data.
 setwd("C:/Users/Matthew Brown/Desktop/School Work/CSE 160/Yelp Dataset")
 data <- read.csv("review.csv", header = TRUE, nrows = 10000, stringsAsFactors = FALSE)
 words <- read.table("stopwords.txt", sep="\n")
 data$text <- tolower(data$text)
-```
 
-```{r}
 #Ask the user to input their business ID so that we can look at reviews specific to that business.
 businessID <- readline(prompt="Please enter your Yelp business ID.")
 businessID
-```
 
-```{r}
 #Subset data frame with only reviews for the specific business. 
 reviews <- data[data$business_id == businessID,]
-```
 
-```{r}
 #For each review in the business-specific data frame, calculate its sentiment and record it.
 
 ngramsDF <- data.frame(ngrams = character(), sentiment = character(), stringsAsFactors = FALSE)
@@ -55,48 +40,32 @@ ngramsDF <- data.frame(ngrams = character(), sentiment = character(), stringsAsF
     ngramsDF <- rbind(ngramsDF, data.frame(ngrams,sentiments, stringsAsFactors = FALSE))
   }
 
-```
-
-```{r}
-# Removes neutral sentiment ngrams.
+#Removes neutral sentiment ngrams.
 ngramsDF <- subset(ngramsDF, sentiments != "neutral")
-```
 
-```{r}
-# Replaces column of ngrams with a column containing a list of the 4 words
+#Replaces column of ngrams with a column containing a list of the 4 words
 ngramsDF$wordList <- strsplit(ngramsDF$ngrams," ")
 ngramsDF$ngrams <- NULL
-```
 
-```{r}
-# Creates empty vectors for wordlists
+#Creates empty vectors for wordlists
 posWordList <- character()
 negWordList <- character()
-```
 
-```{r}
-# Adds the appropriate words to each of the lists
+#Adds the appropriate words to each of the lists
 posWordList <- c(posWordList, subset(ngramsDF, sentiments == "positive")$wordList, recursive = TRUE)
 negWordList <- c(negWordList, subset(ngramsDF, sentiments == "negative")$wordList, recursive = TRUE)
-```
 
-```{r}
 #Remove more useless words from the list of words.
 posWordsToRemove <- readLines("wordRemove.txt")
 negWordsToRemove <- readLines("wordRemove.txt")
 
 posWordList <- posWordList[!posWordList %in% posWordsToRemove]
 negWordList <- negWordList[!negWordList %in% negWordsToRemove]
-```
 
-
-```{r}
-# Count Positive words
+#Count Positive words
 posWordFreq <- count(posWordList)
 negWordFreq <- count(negWordList)
-```
 
-```{r}
 #Formatting to match word cloud generation.
 colnames(posWordFreq)[1] <- "word"
 colnames(negWordFreq)[1] <- "word"
@@ -119,9 +88,7 @@ for(i in 1:nrow(negWordFreq))
     negWordFreq$freq[i]<-0
   }
 }
-```
 
-```{r}
 #Positive Cloud With Title
 layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
 par(mar=rep(0, 4))
@@ -130,9 +97,7 @@ text(x=0.5, y=0.5, "What People Like About Your Business")
 wordcloud(words = posWordFreq$word, freq = posWordFreq$freq, min.freq = 15,
           max.words=40, random.order=TRUE, rot.per=0.35,
           colors="green3")
-```
 
-```{r}
 #Negative Cloud With Title
 layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
 par(mar=rep(0, 4))
@@ -142,5 +107,4 @@ wordcloud(words = negWordFreq$word, freq = negWordFreq$freq, min.freq = 6,
           max.words=50, random.order=TRUE, rot.per=0.35, 
           colors="firebrick")
 
-```
 
